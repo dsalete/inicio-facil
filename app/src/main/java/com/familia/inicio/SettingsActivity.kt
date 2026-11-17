@@ -349,11 +349,14 @@ class SettingsActivity : Activity() {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode != reqPick || resultCode != RESULT_OK) return
         val uri = data?.data ?: return
-        val phone = ContactsContract.CommonDataKinds.Phone
         try {
             contentResolver.query(
                 uri,
-                arrayOf(phone.CONTACT_ID, phone.DISPLAY_NAME, phone.NUMBER),
+                arrayOf(
+                    ContactsContract.CommonDataKinds.Phone.CONTACT_ID,
+                    ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
+                    ContactsContract.CommonDataKinds.Phone.NUMBER
+                ),
                 null, null, null
             )?.use { c ->
                 if (c.moveToFirst()) {
