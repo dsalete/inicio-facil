@@ -35,6 +35,14 @@ object Prefs {
         sp(c).getString("games_url", DEFAULT_GAMES_URL) ?: DEFAULT_GAMES_URL
     fun setGamesUrl(c: Context, v: String) = sp(c).edit().putString("games_url", v).apply()
 
+    /** Avisar en Inicio cuando haya una versión nueva. */
+    fun updateAuto(c: Context): Boolean = sp(c).getBoolean("update_auto", true)
+    fun setUpdateAuto(c: Context, v: Boolean) = sp(c).edit().putBoolean("update_auto", v).apply()
+
+    fun lastUpdateCheck(c: Context): Long = sp(c).getLong("update_last_check", 0L)
+    fun setLastUpdateCheck(c: Context, v: Long) =
+        sp(c).edit().putLong("update_last_check", v).apply()
+
     /** Orden de los botones de la pantalla de inicio (lista de ids). */
     fun tileOrder(c: Context): List<String> {
         val s = sp(c).getString("tile_order", "") ?: ""

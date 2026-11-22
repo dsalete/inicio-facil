@@ -12,6 +12,7 @@ import android.provider.ContactsContract
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
+import android.view.ViewGroup
 import android.view.ViewOutlineProvider
 import android.widget.FrameLayout
 import android.widget.ImageView
@@ -30,6 +31,9 @@ object ContactUi {
         cornerRadius = radiusPx.toFloat()
     }
 
+    /** Color de fondo fijo de un contacto (cuando no tiene foto). */
+    fun colorFor(c: Contact): Int = colors[(c.id % colors.size).toInt()]
+
     /** Foto del contacto en la agenda, o null si no tiene (o no hay permiso). */
     fun photo(ctx: Context, contactId: Long): Bitmap? {
         return try {
@@ -41,6 +45,40 @@ object ContactUi {
         } catch (e: Exception) {
             null
         }
+    }
+
+    /** Nombre más legible: si viene todo en mayúsculas («ANA PÉREZ»), pasa a «Ana Pérez». */
+    fun pretty(name: String): String {
+        val n = name.trim()
+        if (n != n.uppercase()) return n
+        return n.lowercase().split(" ").filter { it.isNotEmpty() }
+            .joinToString(" ") { w -> w.replaceFirstChar { it.uppercase() } }
+    }
+
+    /** Foto del contacto a pantalla completa (recortada), o un fondo de color con su inicial. */
+    fun fill(ctx: Context, c: Contact): View {
+        val bmp = photo(ctx, c.id)
+        if (bmp != null) {
+            val iv = ImageView(ctx)
+            iv.setImageBitmap(bmp)
+            iv.scaleType = ImageView.ScaleType.CENTER_CROP
+            return iv
+        }
+        val frame = FrameLayout(ctx)
+        frame.setBackgroundColor(colors[(c.id % colors.size).toInt()])
+        val tv = TextView(ctx)
+        tv.text = c.name.trim().firstOrNull()?.uppercase() ?: "?"
+        tv.setTypeface(tv.typeface, Typeface.BOLD)
+        tv.setTextColor(Color.WHITE)
+        tv.gravity = Gravity.CENTER
+        tv.setAutoSizeTextTypeUniformWithConfiguration(24, 110, 2, TypedValue.COMPLEX_UNIT_SP)
+        frame.addView(
+            tv,
+            FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT
+            )
+        )
+        return frame
     }
 
     /** Círculo con la foto del contacto o, si no tiene, su inicial sobre un color. */

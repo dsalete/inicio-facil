@@ -141,6 +141,24 @@ class SettingsActivity : Activity() {
 
         box.addView(heading("Ajustes (solo para ti)", 26f))
 
+        // --- Actualizar la aplicación (arriba del todo) ---
+        box.addView(Button(this).apply {
+            text = "Actualizar la aplicación"
+            textSize = 18f
+            minimumHeight = dp(56)
+            setOnClickListener { Updater.check(this@SettingsActivity, true) }
+        })
+        box.addView(TextView(this).apply {
+            text = "Versión instalada: compilación ${Updater.installedVersion(this@SettingsActivity)}"
+            textSize = 14f
+        })
+        box.addView(CheckBox(this).apply {
+            text = "Avisar en Inicio cuando haya versión nueva"
+            textSize = 16f
+            isChecked = Prefs.updateAuto(this@SettingsActivity)
+            setOnCheckedChangeListener { _, v -> Prefs.setUpdateAuto(this@SettingsActivity, v) }
+        })
+
         // --- Botones de la pantalla de inicio: visibilidad y orden ---
         box.addView(heading("Botones de inicio (visibilidad y orden)"))
         val tiles = Tiles.ordered(this)

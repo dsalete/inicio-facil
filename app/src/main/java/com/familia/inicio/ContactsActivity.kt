@@ -11,16 +11,23 @@ import android.graphics.Typeface
 import android.net.Uri
 import android.os.Bundle
 import android.os.SystemClock
+import android.provider.ContactsContract
 import android.text.TextUtils
+import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
+import android.widget.FrameLayout
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 
 private const val MATCH = ViewGroup.LayoutParams.MATCH_PARENT
 private const val WRAP = ViewGroup.LayoutParams.WRAP_CONTENT
+
+/** Tipo de dato que WhatsApp añade a cada contacto para iniciar una videollamada. */
+private const val WHATSAPP_VIDEO = "vnd.android.cursor.item/vnd.com.whatsapp.video.call"
 
 /** Pantalla «Llamar»: fotos de los contactos elegidos, 6 por página. */
 class ContactsActivity : Activity() {
@@ -52,6 +59,7 @@ class ContactsActivity : Activity() {
         setTypeface(typeface, Typeface.BOLD)
         setTextColor(Color.WHITE)
         gravity = Gravity.CENTER
+        maxLines = 1
         background = ContactUi.rounded(color, dp(16))
         setOnClickListener { onClick() }
     }
@@ -104,10 +112,8 @@ class ContactsActivity : Activity() {
         } else {
             val items = contacts.drop(page * perPage).take(perPage)
             val dm = resources.displayMetrics
-            val cellW = dm.widthPixels / cols - dp(16)
-            val cellH = (dm.heightPixels - dp(250)) / rows - dp(16)
-            val avatarSize = minOf(cellW * 0.7f, cellH - dp(56).toFloat())
-                .toInt().coerceAtLeast(dp(40))
+            val cardW = dm.widthPixels / cols - dp(16)
+            val cardH = (dm.heightPixels - dp(250)) / rows - dp(16)
 
             for (r in 0 until rows) {
                 val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
@@ -115,7 +121,7 @@ class ContactsActivity : Activity() {
                     val idx = r * cols + col
                     if (idx < items.size) {
                         row.addView(
-                            cell(items[idx], avatarSize),
+                            cell(items[idx], minOf(cardW, cardH)),
                             LinearLayout.LayoutParams(0, MATCH, 1f).apply {
                                 setMargins(dp(6), dp(6), dp(6), dp(6))
                             }
@@ -137,11 +143,11 @@ class ContactsActivity : Activity() {
                 orientation = LinearLayout.HORIZONTAL
                 gravity = Gravity.CENTER_VERTICAL
             }
-            val prev = button("◀ Anterior", 0xFF6D4C41.toInt()) {
+            val prev = button("Anterior", 0xFF6D4C41.toInt()) {
                 page--
                 build()
             }
-            val next = button("Siguiente ▶", 0xFF6D4C41.toInt()) {
+            val next = button("Siguiente", 0xFF6D4C41.toInt()) {
                 page++
                 build()
             }
@@ -165,28 +171,46 @@ class ContactsActivity : Activity() {
         setContentView(root)
     }
 
-    private fun cell(k: Contact, avatarSize: Int): View {
-        return LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            gravity = Gravity.CENTER
-            background = ContactUi.rounded(Color.WHITE, dp(20))
-            elevation = dp(3).toFloat()
-            addView(
-                ContactUi.avatar(context, k, avatarSize),
-                LinearLayout.LayoutParams(avatarSize, avatarSize)
-            )
-            addView(TextView(context).apply {
-                text = k.name
-                textSize = 22f
-                setTypeface(typeface, Typeface.BOLD)
-                setTextColor(Color.parseColor("#3E2723"))
-                gravity = Gravity.CENTER
-                maxLines = 1
-                ellipsize = TextUtils.TruncateAt.END
-                setPadding(dp(6), dp(6), dp(6), 0)
-            })
-            setOnClickListener { confirm(k) }
+    /** Tarjeta: la foto ocupa todo el fondo y el nombre va sobre una banda blanca abajo. */
+    private fun cell(k: Contact, sidePx: Int): View {
+        val card = FrameLayout(this)
+        card.background = ContactUi.rounded(Color.WHITE, dp(20))
+        card.clipToOutline = true
+        card.elevation = dp(3).toFloat()
+
+        val bmp = ContactUi.photo(this, k.id)
+        if (bmp != null) {
+            val iv = ImageView(this)
+            iv.setImageBitmap(bmp)
+            iv.scaleType = ImageView.ScaleType.CENTER_CROP
+            card.addView(iv, FrameLayout.LayoutParams(MATCH, MATCH))
+        } else {
+            // Sin foto: color con la inicial grande.
+            val tv = TextView(this)
+            tv.text = k.name.trim().firstOrNull()?.uppercase() ?: "?"
+            tv.setTextSize(TypedValue.COMPLEX_UNIT_PX, sidePx * 0.45f)
+            tv.setTypeface(tv.typeface, Typeface.BOLD)
+            tv.setTextColor(Color.WHITE)
+            tv.gravity = Gravity.CENTER
+            tv.setBackgroundColor(ContactUi.colorFor(k))
+            tv.setPadding(0, 0, 0, dp(28))
+            card.addView(tv, FrameLayout.LayoutParams(MATCH, MATCH))
         }
+
+        val name = TextView(this)
+        name.text = k.name
+        name.textSize = 20f
+        name.setTypeface(name.typeface, Typeface.BOLD)
+        name.setTextColor(Color.parseColor("#3E2723"))
+        name.gravity = Gravity.CENTER
+        name.maxLines = 2
+        name.ellipsize = TextUtils.TruncateAt.END
+        name.setBackgroundColor(Color.WHITE)
+        name.setPadding(dp(6), dp(6), dp(6), dp(6))
+        card.addView(name, FrameLayout.LayoutParams(MATCH, WRAP, Gravity.BOTTOM))
+
+        card.setOnClickListener { confirm(k) }
+        return card
     }
 
     private fun confirm(k: Contact) {
@@ -215,12 +239,66 @@ class ContactsActivity : Activity() {
         }
         val dialog = AlertDialog.Builder(this)
             .setView(content)
-            .setPositiveButton("Llamar") { _, _ -> call(k) }
             .setNegativeButton("Cancelar", null)
             .create()
+
+        // Dos botones grandes: llamada normal por teléfono o videollamada por WhatsApp.
+        content.addView(
+            dialogButton("Llamar", 0xFF1565C0.toInt()) {
+                dialog.dismiss()
+                call(k)
+            },
+            LinearLayout.LayoutParams(MATCH, dp(72)).apply { topMargin = dp(18) }
+        )
+        content.addView(
+            dialogButton("Videollamada", 0xFF2E7D32.toInt()) {
+                dialog.dismiss()
+                videoCall(k)
+            },
+            LinearLayout.LayoutParams(MATCH, dp(72)).apply { topMargin = dp(12) }
+        )
         dialog.show()
-        dialog.getButton(AlertDialog.BUTTON_POSITIVE).textSize = 22f
         dialog.getButton(AlertDialog.BUTTON_NEGATIVE).textSize = 20f
+    }
+
+    private fun dialogButton(label: String, color: Int, onClick: () -> Unit) = TextView(this).apply {
+        text = label
+        textSize = 26f
+        setTypeface(typeface, Typeface.BOLD)
+        setTextColor(Color.WHITE)
+        gravity = Gravity.CENTER
+        background = ContactUi.rounded(color, dp(20))
+        setOnClickListener { onClick() }
+    }
+
+    /** Abre WhatsApp directamente en la videollamada con ese contacto. */
+    private fun videoCall(k: Contact) {
+        var dataId = -1L
+        try {
+            contentResolver.query(
+                ContactsContract.Data.CONTENT_URI,
+                arrayOf(ContactsContract.Data._ID),
+                "${ContactsContract.Data.CONTACT_ID}=? AND ${ContactsContract.Data.MIMETYPE}=?",
+                arrayOf(k.id.toString(), WHATSAPP_VIDEO),
+                null
+            )?.use { c ->
+                if (c.moveToFirst()) dataId = c.getLong(0)
+            }
+        } catch (e: Exception) {
+            // Sin permiso de contactos o sin WhatsApp: se avisa abajo.
+        }
+        if (dataId < 0) {
+            Toast.makeText(this, "No se encuentra a ${k.name} en WhatsApp", Toast.LENGTH_LONG).show()
+            return
+        }
+        val intent = Intent(Intent.ACTION_VIEW)
+        intent.setDataAndType(Uri.parse("content://com.android.contacts/data/$dataId"), WHATSAPP_VIDEO)
+        intent.setPackage("com.whatsapp")
+        try {
+            startActivity(intent)
+        } catch (e: Exception) {
+            Toast.makeText(this, "No se puede abrir WhatsApp", Toast.LENGTH_LONG).show()
+        }
     }
 
     private fun call(k: Contact) {
