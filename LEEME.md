@@ -46,6 +46,10 @@ PIN inicial: **1234** (cámbialo en ajustes). Desde ahí:
 - **Actualizar la aplicación:** botón al principio de Ajustes; busca la última versión publicada y la instala. Debajo, la versión instalada y si Inicio avisa cuando hay una nueva.
 - Para volver al launcher anterior: **Cambiar de launcher**.
 
+## Tarjeta del Tiempo
+
+Es un botón más de Inicio (el primero por defecto): emoji del estado, temperatura grande y el estado («Despejado», «Lluvia»…). Al tocarlo se abre una pantalla con el tiempo de ahora, hoy y mañana (máxima, mínima y probabilidad de lluvia). Usa Open-Meteo (gratis, sin clave) y la ubicación aproximada del móvil, y se actualiza cada 30 minutos. Pide el permiso de **Ubicación** (en Ajustes o al tocar la tarjeta la primera vez). Sin internet enseña el último dato guardado. Se puede ocultar o mover desde Ajustes como los demás botones. Con 9 botones de serie, Alarmas y Ajustes pasan a la segunda página; si no la quieres, oculta alguno.
+
 ## Pantalla Llamar
 
 Muestra 6 contactos por página con su foto de la agenda (si no tienen, una inicial de color). Con más de 6 aparecen los botones **Anterior** y **Siguiente**. Al tocar uno sale «¿Quieres llamar a …?» con dos botones grandes: **Llamar** (llamada normal por teléfono, directa) y **Videollamada** (abre WhatsApp en la videollamada con ese contacto). Si no se aceptó el permiso de Teléfono, **Llamar** abre el marcador con el número ya puesto. La videollamada solo funciona con contactos que tengan WhatsApp y que WhatsApp tenga sincronizados con la agenda; si no, avisa de que no encuentra al contacto.

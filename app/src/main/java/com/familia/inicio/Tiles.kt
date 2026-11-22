@@ -118,6 +118,9 @@ object Tiles {
 
     // Botones de serie, en su orden por defecto.
     val all: List<Tile> = listOf(
+        Tile("tiempo", "Tiempo", "🌤️", 0xFF0277BD.toInt()) { c ->
+            Intent(c, WeatherActivity::class.java)
+        },
         Tile("camara", "Cámara", "📷", 0xFF37474F.toInt(),
             iconOf = { c -> handlerIcon(c, Intent(MediaStore.INTENT_ACTION_STILL_IMAGE_CAMERA)) }
         ) {

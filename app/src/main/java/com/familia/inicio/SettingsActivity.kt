@@ -119,9 +119,12 @@ class SettingsActivity : Activity() {
         }
     }
 
-    // Permisos: leer contactos (para las fotos) y llamar directamente.
+    // Permisos: leer contactos (para las fotos), llamar directamente y ubicación (para el tiempo).
     private fun askPermissions() {
-        val need = arrayOf(Manifest.permission.READ_CONTACTS, Manifest.permission.CALL_PHONE)
+        val need = arrayOf(
+            Manifest.permission.READ_CONTACTS, Manifest.permission.CALL_PHONE,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        )
             .filter { checkSelfPermission(it) != PackageManager.PERMISSION_GRANTED }
         if (need.isNotEmpty()) requestPermissions(need.toTypedArray(), reqPerm)
     }

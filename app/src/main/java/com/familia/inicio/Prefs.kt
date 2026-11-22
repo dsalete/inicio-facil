@@ -97,4 +97,16 @@ object Prefs {
         }
         sp(c).edit().putString("contacts", arr.toString()).apply()
     }
+
+    /** Último tiempo descargado (JSON) y última posición conocida. */
+    fun weather(c: Context): String? = sp(c).getString("weather", null)
+    fun setWeather(c: Context, v: String) = sp(c).edit().putString("weather", v).apply()
+
+    fun lat(c: Context): Double? =
+        if (sp(c).contains("lat")) java.lang.Double.longBitsToDouble(sp(c).getLong("lat", 0L)) else null
+    fun lon(c: Context): Double? =
+        if (sp(c).contains("lon")) java.lang.Double.longBitsToDouble(sp(c).getLong("lon", 0L)) else null
+    fun setLatLon(c: Context, lat: Double, lon: Double) = sp(c).edit()
+        .putLong("lat", java.lang.Double.doubleToRawLongBits(lat))
+        .putLong("lon", java.lang.Double.doubleToRawLongBits(lon)).apply()
 }

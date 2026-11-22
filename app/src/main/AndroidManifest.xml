@@ -5,6 +5,9 @@
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <uses-permission android:name="android.permission.CALL_PHONE" />
 
+    <!-- Ubicación aproximada para el tiempo de la zona -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
     <!-- Buscar e instalar versiones nuevas desde GitHub -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
@@ -62,6 +65,11 @@
             android:name=".SettingsActivity"
             android:exported="false"
             android:label="Ajustes" />
+        <activity
+            android:name=".WeatherActivity"
+            android:exported="false"
+            android:label="Tiempo" />
+
         <receiver
             android:name=".InstallReceiver"
             android:exported="false" />

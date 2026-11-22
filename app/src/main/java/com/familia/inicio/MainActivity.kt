@@ -45,16 +45,24 @@ class MainActivity : Activity() {
     private val handler = Handler(Looper.getMainLooper())
     private var timeView: TextView? = null
     private var dateView: TextView? = null
+    private var resumed = false
 
     private val ticker = object : Runnable {
         override fun run() {
             updateClock()
+            refreshWeather()
             handler.postDelayed(this, 1000)
         }
     }
 
+    // Pide el tiempo si toca (cada 30 minutos); al llegar, redibuja la tarjeta.
+    private fun refreshWeather() {
+        Weather.refresh(this) { if (resumed && !isFinishing) buildScreen() }
+    }
+
     override fun onResume() {
         super.onResume()
+        resumed = true
         buildScreen()
         handler.removeCallbacks(ticker)
         ticker.run()
@@ -63,6 +71,7 @@ class MainActivity : Activity() {
 
     override fun onPause() {
         super.onPause()
+        resumed = false
         handler.removeCallbacks(ticker)
     }
 
@@ -208,6 +217,7 @@ class MainActivity : Activity() {
 
     /** Un botón: icono grande (el original de la app) arriba y el nombre debajo, siempre visibles. */
     private fun tileView(t: Tile, scale: Float): View {
+        if (t.id == "tiempo") return weatherTile(t, scale)
         val bg = ContactUi.rounded(t.color, dp(24))
         val ripple = RippleDrawable(
             ColorStateList.valueOf(Color.argb(90, 255, 255, 255)), bg, null
@@ -252,6 +262,61 @@ class MainActivity : Activity() {
         label.maxLines = 1
         label.ellipsize = TextUtils.TruncateAt.END
         label.setPadding(0, dp(6), 0, 0)
+        tile.addView(label, LinearLayout.LayoutParams(MATCH, WRAP))
+
+        tile.setOnClickListener { open(t) }
+        return tile
+    }
+
+    /** Tarjeta del tiempo: emoji del estado, temperatura grande y el nombre del estado. */
+    private fun weatherTile(t: Tile, scale: Float): View {
+        val w = Weather.cached(this)
+        val emoji: String
+        val name: String
+        if (w != null) {
+            val info = Weather.info(w.code, w.isDay)
+            emoji = info.first
+            name = info.second
+        } else {
+            emoji = t.emoji
+            name = if (Weather.hasPermission(this)) "Tiempo" else "Activar"
+        }
+        val bg = ContactUi.rounded(t.color, dp(24))
+        val ripple = RippleDrawable(
+            ColorStateList.valueOf(Color.argb(90, 255, 255, 255)), bg, null
+        )
+        val tile = LinearLayout(this)
+        tile.orientation = LinearLayout.VERTICAL
+        tile.gravity = Gravity.CENTER_HORIZONTAL
+        tile.background = ripple
+        tile.elevation = dp(4).toFloat()
+        tile.setPadding(dp(8), dp(10), dp(8), dp(8))
+
+        val emo = TextView(this)
+        emo.text = emoji
+        emo.gravity = Gravity.CENTER
+        emo.setAutoSizeTextTypeUniformWithConfiguration(20, 80, 2, TypedValue.COMPLEX_UNIT_SP)
+        tile.addView(emo, LinearLayout.LayoutParams(MATCH, 0, 1f))
+
+        val temp = TextView(this)
+        temp.text = if (w != null) "${w.temp}°" else "--"
+        temp.textSize = 40f * scale
+        temp.setTypeface(temp.typeface, Typeface.BOLD)
+        temp.setTextColor(Color.WHITE)
+        temp.gravity = Gravity.CENTER
+        temp.maxLines = 1
+        temp.includeFontPadding = false
+        tile.addView(temp, LinearLayout.LayoutParams(MATCH, WRAP))
+
+        val label = TextView(this)
+        label.text = name
+        label.textSize = 22f * scale
+        label.setTypeface(label.typeface, Typeface.BOLD)
+        label.setTextColor(Color.WHITE)
+        label.gravity = Gravity.CENTER
+        label.maxLines = 1
+        label.ellipsize = TextUtils.TruncateAt.END
+        label.setPadding(0, dp(4), 0, 0)
         tile.addView(label, LinearLayout.LayoutParams(MATCH, WRAP))
 
         tile.setOnClickListener { open(t) }
