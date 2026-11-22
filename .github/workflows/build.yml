@@ -5,6 +5,9 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -20,10 +23,38 @@ jobs:
         with:
           gradle-version: 8.7
 
+      - name: Preparar la clave de firma
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ] || [ -z "$KEYSTORE_PASSWORD" ]; then
+            echo "Faltan los secretos KEYSTORE_BASE64 y KEYSTORE_PASSWORD (Settings > Secrets and variables > Actions)."
+            exit 1
+          fi
+          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/inicio.jks"
+
       - name: Compilar
+        env:
+          KEYSTORE_FILE: ${{ runner.temp }}/inicio.jks
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
         run: gradle assembleDebug --no-daemon
 
-      - uses: actions/upload-artifact@v4
+      - name: Guardar el APK
+        uses: actions/upload-artifact@v4
         with:
           name: inicio-facil-apk
           path: app/build/outputs/apk/debug/app-debug.apk
+
+      # Publica el APK como Release de este mismo repositorio (el launcher lo consulta).
+      - name: Publicar versión
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp app/build/outputs/apk/debug/app-debug.apk inicio-facil.apk
+          TAG="v${{ github.run_number }}"
+          gh release create "$TAG" inicio-facil.apk \
+            --title "Versión ${{ github.run_number }}" \
+            --notes "Compilación automática número ${{ github.run_number }}" \
+            --target "${{ github.sha }}" --latest \
+            || gh release upload "$TAG" inicio-facil.apk --clobber
