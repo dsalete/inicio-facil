@@ -7,6 +7,8 @@ import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.Typeface
+import android.graphics.drawable.AdaptiveIconDrawable
+import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.RippleDrawable
 import android.os.Handler
@@ -67,6 +69,7 @@ class MainActivity : Activity() {
         handler.removeCallbacks(ticker)
         ticker.run()
         Updater.checkIfDue(this)
+        GameIcon.refresh(this) { if (resumed && !isFinishing) buildScreen() }
     }
 
     override fun onPause() {
@@ -215,6 +218,35 @@ class MainActivity : Activity() {
         setContentView(root)
     }
 
+    /** ¿El icono ya trae fondo propio (adaptativo, o imagen que llena el cuadro)? */
+    private fun hasOwnBackground(d: Drawable): Boolean {
+        if (d is AdaptiveIconDrawable) return true
+        if (d is BitmapDrawable) {
+            try {
+                return bitmapFillsSquare(d)
+            } catch (e: Exception) {
+                return false
+            }
+        }
+        return false
+    }
+
+    private fun bitmapFillsSquare(d: BitmapDrawable): Boolean {
+        val b = d.bitmap ?: return false
+        val w = b.width
+        val h = b.height
+        if (w < 8 || h < 8) return false
+        val pts = arrayOf(
+            intArrayOf(w / 2, 3), intArrayOf(w / 2, h - 4),
+            intArrayOf(3, h / 2), intArrayOf(w - 4, h / 2)
+        )
+        var opaque = 0
+        for (p in pts) {
+            if (Color.alpha(b.getPixel(p[0], p[1])) > 200) opaque++
+        }
+        return opaque >= 3
+    }
+
     /** Un botón: icono grande (el original de la app) arriba y el nombre debajo, siempre visibles. */
     private fun tileView(t: Tile, scale: Float): View {
         if (t.id == "tiempo") return weatherTile(t, scale)
@@ -241,12 +273,16 @@ class MainActivity : Activity() {
             val iv = SquareImageView(this)
             iv.setImageDrawable(icon)
             iv.scaleType = ImageView.ScaleType.FIT_CENTER
-            iv.background = ContactUi.rounded(Color.argb(235, 255, 255, 255), dp(18))
-            iv.setPadding(dp(3), dp(3), dp(3), dp(3))
+            // Si el icono ya trae su fondo, se muestra tal cual; si es transparente, va sobre un cuadro blanco.
+            if (!hasOwnBackground(icon)) {
+                iv.background = ContactUi.rounded(Color.argb(235, 255, 255, 255), dp(18))
+                iv.setPadding(dp(6), dp(6), dp(6), dp(6))
+            }
             box.addView(iv, FrameLayout.LayoutParams(MATCH, MATCH, Gravity.CENTER))
         } else {
             val tv = TextView(this)
             tv.text = t.emoji
+            tv.setTextColor(Color.WHITE)
             tv.gravity = Gravity.CENTER
             tv.setAutoSizeTextTypeUniformWithConfiguration(20, 80, 2, TypedValue.COMPLEX_UNIT_SP)
             box.addView(tv, FrameLayout.LayoutParams(MATCH, MATCH, Gravity.CENTER))
@@ -294,6 +330,7 @@ class MainActivity : Activity() {
 
         val emo = TextView(this)
         emo.text = emoji
+        emo.setTextColor(Color.WHITE)
         emo.gravity = Gravity.CENTER
         emo.setAutoSizeTextTypeUniformWithConfiguration(20, 80, 2, TypedValue.COMPLEX_UNIT_SP)
         tile.addView(emo, LinearLayout.LayoutParams(MATCH, 0, 1f))

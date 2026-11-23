@@ -136,7 +136,9 @@ object Tiles {
         ) { c ->
             app(c, "com.whatsapp")
         },
-        Tile("juegos", "Juegos", "🧩", 0xFF6A1B9A.toInt()) { c ->
+        Tile("juegos", "Juegos", "🧩", 0xFF6A1B9A.toInt(),
+            iconOf = { c -> GameIcon.of(c) }
+        ) { c ->
             Intent(Intent.ACTION_VIEW, Uri.parse(Prefs.gamesUrl(c)))
         },
         Tile("llamar", "Llamar", "📞", 0xFF00796B.toInt(),

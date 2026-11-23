@@ -109,4 +109,8 @@ object Prefs {
     fun setLatLon(c: Context, lat: Double, lon: Double) = sp(c).edit()
         .putLong("lat", java.lang.Double.doubleToRawLongBits(lat))
         .putLong("lon", java.lang.Double.doubleToRawLongBits(lon)).apply()
+
+    /** Última descarga del icono de Juegos: «dirección|hora». */
+    fun gameIconStamp(c: Context): String = sp(c).getString("game_icon_stamp", "") ?: ""
+    fun setGameIconStamp(c: Context, v: String) = sp(c).edit().putString("game_icon_stamp", v).apply()
 }

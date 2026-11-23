@@ -36,15 +36,18 @@ Una vez elegido como inicio **«Siempre»**, el móvil lo arranca solo al encend
 
 ## Ajustes (último botón, con PIN)
 
-PIN inicial: **1234** (cámbialo en ajustes). Desde ahí:
+PIN inicial: **1234** (cámbialo en Ajustes → Más opciones). Ajustes es un menú de tarjetas grandes de color:
 
-- Mostrar u ocultar cada botón y **ordenarlos con ▲ ▼**.
-- **Añadir app:** muestra todas las apps instaladas en el móvil; la que elijas aparece en Inicio con su icono real y un fondo del color de ese icono. Las apps añadidas se pueden ordenar con ▲ ▼ y quitar del todo con ✕ (los 8 botones de serie solo se ocultan con su casilla).
-- **Páginas:** cada página de Inicio tiene 8 botones. Si hay más, aparecen **Anterior** y **Siguiente** debajo (con «1 de 2»). Al salir a otra app y volver, Inicio empieza otra vez en la primera página.
-- **Contactos para llamar:** «Añadir contacto» abre la agenda del móvil; se pueden ordenar con ▲ ▼ y quitar con ✕. La primera vez, acepta los permisos de **Contactos** (para las fotos) y **Teléfono** (para llamar directamente).
-- Tamaño del texto, ignorar toques repetidos y dirección web de los juegos.
-- **Actualizar la aplicación:** botón al principio de Ajustes; busca la última versión publicada y la instala. Debajo, la versión instalada y si Inicio avisa cuando hay una nueva.
-- Para volver al launcher anterior: **Cambiar de launcher**.
+- **🔄 Actualizar:** busca la última versión publicada y la instala; la tarjeta muestra la versión instalada.
+- **🏠 Botones de inicio:** cada botón se ve con su icono; interruptor para mostrarlo u ocultarlo, **▲ ▼** para ordenarlo y **＋ Añadir app** para sumar cualquier app instalada (con ✕ se quita del todo; los de serie solo se ocultan).
+- **📞 Contactos:** lista con foto, ▲ ▼ ✕ y **＋ Añadir contacto** (abre la agenda).
+- **🔤 Texto y toques:** tamaño del texto (Pequeño, Normal, Grande) e ignorar toques repetidos, con botones para elegir.
+- **🔧 Más opciones:** aviso de versión nueva, dirección web de los juegos, cambiar PIN, estado de permisos (Contactos, Teléfono, Ubicación) y accesos a los ajustes de Android y a «Cambiar de launcher».
+- **🏡 Volver a Inicio.** Dentro de cada sección, **Volver** (o Atrás) regresa al menú de Ajustes.
+
+**Páginas:** cada página de Inicio tiene 8 botones. Si hay más, aparecen **Anterior** y **Siguiente** (con «1 de 2»). Al salir a otra app y volver, Inicio empieza otra vez en la primera página.
+
+**Iconos:** cada botón usa el icono original de la app. Si el icono ya trae su fondo se muestra tal cual; si es transparente, va sobre un cuadro blanco. El de Juegos es el de la web de juegos (el de la app instalada o el que declara la web).
 
 ## Tarjeta del Tiempo
 
